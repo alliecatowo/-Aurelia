@@ -1,10 +1,11 @@
 import { invoke } from "@tauri-apps/api/core";
 import type { HooksConfiguration } from '@/types/hooks';
+import type { ProviderId } from '@/lib/providers/types';
 
 /** Process type for tracking in ProcessRegistry */
-export type ProcessType = 
+export type ProcessType =
   | { AgentRun: { agent_id: number; agent_name: string } }
-  | { ClaudeSession: { session_id: string } };
+  | { ProviderSession: { provider: ProviderId; session_id: string } };
 
 /** Information about a running process */
 export interface ProcessInfo {
@@ -1009,20 +1010,34 @@ export const api = {
   },
 
   /**
-   * Lists all currently running Claude sessions
-   * @returns Promise resolving to list of running Claude sessions
+   * Lists all currently running sessions for a provider
+   * @param provider - Provider ID (e.g., 'claude', 'codex', 'gemini')
    */
-  async listRunningClaudeSessions(): Promise<any[]> {
-    return invoke("list_running_claude_sessions");
+  async listRunningSessions(provider: ProviderId): Promise<any[]> {
+    return invoke("list_running_sessions_for", { provider });
   },
 
   /**
-   * Gets live output from a Claude session
+   * Legacy helper for Claude sessions
+   */
+  async listRunningClaudeSessions(): Promise<any[]> {
+    return this.listRunningSessions("claude");
+  },
+
+  /**
+   * Gets live output from a provider session
+   * @param provider - Provider ID
    * @param sessionId - The session ID to get output for
-   * @returns Promise resolving to the current live output
+   */
+  async getProviderSessionOutput(provider: ProviderId, sessionId: string): Promise<string> {
+    return invoke("get_provider_session_output", { provider, sessionId });
+  },
+
+  /**
+   * Legacy helper for Claude session output
    */
   async getClaudeSessionOutput(sessionId: string): Promise<string> {
-    return invoke("get_claude_session_output", { sessionId });
+    return this.getProviderSessionOutput("claude", sessionId);
   },
 
   /**

@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ProjectList } from "@/components/ProjectList";
 import { SessionList } from "@/components/SessionList";
-import { RunningClaudeSessions } from "@/components/RunningClaudeSessions";
+import { RunningSessions } from "@/components/RunningSessions";
 import { Topbar } from "@/components/Topbar";
 import { MarkdownEditor } from "@/components/MarkdownEditor";
 import { ClaudeFileEditor } from "@/components/ClaudeFileEditor";
@@ -401,7 +401,7 @@ function AppContent() {
                       </motion.div>
 
                       {/* Running Claude Sessions */}
-                      <RunningClaudeSessions />
+                      <RunningSessions />
 
                       {/* Project list */}
                       {projects.length > 0 ? (

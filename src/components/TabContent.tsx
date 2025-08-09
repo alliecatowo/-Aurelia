@@ -7,7 +7,7 @@ import { Loader2, Plus } from 'lucide-react';
 import { api, type Project, type Session, type ClaudeMdFile } from '@/lib/api';
 import { ProjectList } from '@/components/ProjectList';
 import { SessionList } from '@/components/SessionList';
-import { RunningClaudeSessions } from '@/components/RunningClaudeSessions';
+import { RunningSessions } from '@/components/RunningSessions';
 import { Button } from '@/components/ui/button';
 
 // Lazy load heavy components
@@ -179,7 +179,7 @@ const TabPanel: React.FC<TabPanelProps> = ({ tab, isActive }) => {
                       </motion.div>
 
                       {/* Running Claude Sessions */}
-                      <RunningClaudeSessions />
+                      <RunningSessions />
 
                       {/* Project list */}
                       {projects.length > 0 ? (

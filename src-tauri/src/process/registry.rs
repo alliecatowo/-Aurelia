@@ -11,7 +11,8 @@ pub enum ProcessType {
         agent_id: i64,
         agent_name: String,
     },
-    ClaudeSession {
+    ProviderSession {
+        provider: String,
         session_id: String,
     },
 }
@@ -117,9 +118,10 @@ impl ProcessRegistry {
         Ok(())
     }
 
-    /// Register a new Claude session (without child process - handled separately)
-    pub fn register_claude_session(
+    /// Register a new provider session (without child process - handled separately)
+    pub fn register_provider_session(
         &self,
+        provider: String,
         session_id: String,
         pid: u32,
         project_path: String,
@@ -127,10 +129,10 @@ impl ProcessRegistry {
         model: String,
     ) -> Result<i64, String> {
         let run_id = self.generate_id()?;
-        
+
         let process_info = ProcessInfo {
             run_id,
-            process_type: ProcessType::ClaudeSession { session_id },
+            process_type: ProcessType::ProviderSession { provider, session_id },
             pid,
             started_at: Utc::now(),
             project_path,
@@ -138,12 +140,12 @@ impl ProcessRegistry {
             model,
         };
 
-        // Register without child - Claude sessions use ClaudeProcessState for process management
+        // Register without child - provider sessions manage processes separately
         let mut processes = self.processes.lock().map_err(|e| e.to_string())?;
-        
+
         let process_handle = ProcessHandle {
             info: process_info,
-            child: Arc::new(Mutex::new(None)), // No child handle for Claude sessions
+            child: Arc::new(Mutex::new(None)), // No child handle for provider sessions
             live_output: Arc::new(Mutex::new(String::new())),
         };
 
@@ -170,28 +172,34 @@ impl ProcessRegistry {
         Ok(())
     }
 
-    /// Get all running Claude sessions
-    pub fn get_running_claude_sessions(&self) -> Result<Vec<ProcessInfo>, String> {
+    /// Get all running sessions for a provider
+    pub fn get_running_sessions_for(&self, provider: &str) -> Result<Vec<ProcessInfo>, String> {
         let processes = self.processes.lock().map_err(|e| e.to_string())?;
         Ok(processes
             .values()
             .filter_map(|handle| {
                 match &handle.info.process_type {
-                    ProcessType::ClaudeSession { .. } => Some(handle.info.clone()),
+                    ProcessType::ProviderSession { provider: p, .. } if p == provider =>
+                        Some(handle.info.clone()),
                     _ => None,
                 }
             })
             .collect())
     }
 
-    /// Get a specific Claude session by session ID
-    pub fn get_claude_session_by_id(&self, session_id: &str) -> Result<Option<ProcessInfo>, String> {
+    /// Get a specific provider session by session ID
+    pub fn get_provider_session_by_id(
+        &self,
+        provider: &str,
+        session_id: &str,
+    ) -> Result<Option<ProcessInfo>, String> {
         let processes = self.processes.lock().map_err(|e| e.to_string())?;
         Ok(processes
             .values()
             .find(|handle| {
                 match &handle.info.process_type {
-                    ProcessType::ClaudeSession { session_id: sid } => sid == session_id,
+                    ProcessType::ProviderSession { provider: p, session_id: sid }
+                        if p == provider && sid == session_id => true,
                     _ => false,
                 }
             })

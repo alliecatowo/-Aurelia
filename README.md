@@ -31,6 +31,8 @@ https://github.com/user-attachments/assets/bf0bdf9d-ba91-45af-9ac4-7274f57075cf
 
 Think of Claudia as your command center for Claude Code - bridging the gap between the command-line tool and a visual experience that makes AI-assisted development more intuitive and productive.
 
+**Aurelia** extends this foundation with a provider system for multiple official CLIs. It can detect and launch Claude, OpenAI Codex, and Google Gemini through their account-based sign-in flows and bridge them via MCP. See [docs/PROVIDERS.md](docs/PROVIDERS.md) for details.
+
 ## 📋 Table of Contents
 
 - [🌟 Overview](#-overview)

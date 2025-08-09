@@ -320,8 +320,12 @@ export const ClaudeCodeSession: React.FC<ClaudeCodeSessionProps> = ({
       try {
         const activeSessions = await api.listRunningClaudeSessions();
         const activeSession = activeSessions.find((s: any) => {
-          if ('process_type' in s && s.process_type && 'ClaudeSession' in s.process_type) {
-            return (s.process_type as any).ClaudeSession.session_id === session.id;
+          if (
+            'process_type' in s &&
+            s.process_type &&
+            'ProviderSession' in s.process_type
+          ) {
+            return (s.process_type as any).ProviderSession.session_id === session.id;
           }
           return false;
         });

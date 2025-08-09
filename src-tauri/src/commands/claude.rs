@@ -927,7 +927,7 @@ pub async fn cancel_claude_execution(
     // Method 1: Try to find and kill via ProcessRegistry using session ID
     if let Some(sid) = &session_id {
         let registry = app.state::<crate::process::ProcessRegistryState>();
-        match registry.0.get_claude_session_by_id(sid) {
+        match registry.0.get_provider_session_by_id("claude", sid) {
             Ok(Some(process_info)) => {
                 log::info!("Found process in registry for session {}: run_id={}, PID={}", 
                     sid, process_info.run_id, process_info.pid);
@@ -1034,22 +1034,25 @@ pub async fn cancel_claude_execution(
     Ok(())
 }
 
-/// Get all running Claude sessions
+/// Get all running sessions for a provider
 #[tauri::command]
-pub async fn list_running_claude_sessions(
+pub async fn list_running_sessions_for(
+    provider: String,
     registry: tauri::State<'_, crate::process::ProcessRegistryState>,
 ) -> Result<Vec<crate::process::ProcessInfo>, String> {
-    registry.0.get_running_claude_sessions()
+    registry.0.get_running_sessions_for(&provider)
 }
 
-/// Get live output from a Claude session
+/// Get live output from a provider session
 #[tauri::command]
-pub async fn get_claude_session_output(
-    registry: tauri::State<'_, crate::process::ProcessRegistryState>,
+pub async fn get_provider_session_output(
+    provider: String,
     session_id: String,
+    registry: tauri::State<'_, crate::process::ProcessRegistryState>,
 ) -> Result<String, String> {
-    // Find the process by session ID
-    if let Some(process_info) = registry.0.get_claude_session_by_id(&session_id)? {
+    if let Some(process_info) =
+        registry.0.get_provider_session_by_id(&provider, &session_id)?
+    {
         registry.0.get_live_output(process_info.run_id)
     } else {
         Ok(String::new())
@@ -1121,7 +1124,8 @@ async fn spawn_claude_process(app: AppHandle, mut cmd: Command, prompt: String, 
                             log::info!("Extracted Claude session ID: {}", claude_session_id);
                             
                             // Now register with ProcessRegistry using Claude's session ID
-                            match registry_clone.register_claude_session(
+                            match registry_clone.register_provider_session(
+                                "claude".to_string(),
                                 claude_session_id.to_string(),
                                 pid,
                                 project_path_clone.clone(),
